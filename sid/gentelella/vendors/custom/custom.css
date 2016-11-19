@@ -6,3 +6,21 @@
   width:300px;
   height: 50px;
 }
+
+.selectButton {
+	margin-bottom: 70px;
+}
+.twitter-timeline {
+	margin-top: 70px;
+}
+
+.invisible {
+    visibility: hidden;
+    position: absolute;
+    top: -9999px;
+}
+
+.visible {
+    visibility: visible;
+    position: static;
+}
