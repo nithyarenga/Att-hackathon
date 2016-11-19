@@ -56,6 +56,11 @@ def returnarray():
         for doc in query:
             return json_util.dumps(doc)
 
+@post('/alerts')
+def returnarray():
+    value = request.body.read()
+    v = loads(value)
+    db.alerts.insert({"color":"red", "text" : v["alert"], "date" : datetime.datetime.utcnow()})
 
 @get('/shelter')
 #name, address
