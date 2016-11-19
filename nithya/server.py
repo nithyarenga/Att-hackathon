@@ -9,12 +9,13 @@ from datetime import datetime
 from requests.exceptions import HTTPError
 import StringIO
 import send_tweet as tweet
+import datetime
 
 client = MongoClient()
 db = client.lighthouse
 
 client = M2XClient(key="dbbbb260442d2411fb43e2f1917a8d88")
-sosState = ""
+
 
 @get('/hello')
 def hello():
@@ -169,14 +170,17 @@ def returnarray():
 
     if request.query.alexa:
          sosState = request.query.alexa
-         print sosState
+         db.info.insert({"message":sosState, "CreateDate": datetime.datetime.utcnow()})
          rv = { "success": "updated sos state"}
          response.content_type = 'application/json'
          return dumps(rv)
     else:
-        print sosState
+        sosState = ""
+        query = db.info.find().limit(1)
+        for doc in query:
+            sosState = doc["message"]
         if sosState != "":
-            aid_list = db.alexa_locs.find({"aid":sosState})
+            aid_list = db.alexa_locs.find({"aid":int(sosState)})
             return str(aid_list[0]["lat"]) + "," + str(aid_list[0]["long"])
         else:
             return ""
