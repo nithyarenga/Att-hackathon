@@ -2,16 +2,19 @@ from bottle import route, run
 from bottle import request, response
 from bottle import post, get, put, delete
 from pymongo import MongoClient
-from json import dumps
+from json import dumps, loads
 from bson import json_util
 from m2x.client import M2XClient
 from datetime import datetime
 from requests.exceptions import HTTPError
+import StringIO
+import send_tweet as tweet
 
 client = MongoClient()
 db = client.lighthouse
 
 client = M2XClient(key="dbbbb260442d2411fb43e2f1917a8d88")
+sosState = ""
 
 @get('/hello')
 def hello():
@@ -33,8 +36,10 @@ def m2x_trigger():
 
 @post('/m2x_trigger')
 def m2x_trigger():
+    value = request.body.read()
+    v = loads(value)
+    tweet.create_tweet(v["custom_data"])
 
-    print "hello"
 @get('/alerts')
 #color
 #list of strings
@@ -116,7 +121,7 @@ def returnarray():
         query = db.hygiene_dir.find({})
         for doc in query:
             db.put_counter.insert({"name":doc["location_name"],"aid":request.query.alexa, "endpoint":"hygiene"})
-            final = {"text" : ["Sanitary napkins are available all day in the shelter"," there is also a "+ doc["type"] +" truck from " + doc["time"]+ " at "+doc["location_name"]]}
+            final = {"text" : [" yes ","Sanitary napkins are available all day in the shelter"," there is also a "+ doc["type"] +" truck from " + doc["time"]+ " at "+doc["location_name"]]}
             return final
 
 
@@ -161,8 +166,19 @@ def returnarray():
 
 @get('/sos')
 def returnarray():
-    rv = { "success": "ok"}
-    response.content_type = 'application/json'
-    return dumps(rv)
+
+    if request.query.alexa:
+         sosState = request.query.alexa
+         print sosState
+         rv = { "success": "updated sos state"}
+         response.content_type = 'application/json'
+         return dumps(rv)
+    else:
+        print sosState
+        if sosState != "":
+            aid_list = db.alexa_locs.find({"aid":sosState})
+            return str(aid_list[0]["lat"]) + "," + str(aid_list[0]["long"])
+        else:
+            return ""
 
 run(host='50.97.82.230', port=8080, debug=True)
